@@ -1,0 +1,30 @@
+{
+  "name": "pixijs-learn",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "cp .env.uat .env.local && next dev -p 3011",
+    "build:uat": "cp .env.uat .env.local && next build",
+    "build:prod": "cp .env.prod .env.local && next build",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "15.2.2",
+    "pixi.js": "^8.8.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
