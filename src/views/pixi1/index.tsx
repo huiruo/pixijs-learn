@@ -6,6 +6,9 @@ export const PixiGame = () => {
 
   async function init() {
     const app = new Application();
+
+    globalThis.__PIXI_APP__ = app;
+
     await app.init({
       width: 600,
       height: 600,

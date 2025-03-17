@@ -6,6 +6,9 @@ export const PixiExample1 = () => {
 
   async function init() {
     const app = new Application();
+
+    globalThis.__PIXI_APP__ = app;
+
     await app.init({
       background: '#fff',
       width: 400,
