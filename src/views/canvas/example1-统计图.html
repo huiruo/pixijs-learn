@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <canvas width="500" height="500" id="canvas"></canvas>
+</body>
+<script>
+  // 获取画布dom
+  const canvas = document.getElementById("canvas");
+  // 获取画布上下文对象
+  const ctx = canvas.getContext("2d")
+
+  // 刻度数量
+  const kNum = 3;
+  // 刻度长度
+  const kLen = 100;
+
+  // 柱子
+  const data = [{
+    name: '点击', value: 120
+  }, {
+    name: '曝光', value: 380
+  }, {
+    name: '评论', value: 150
+  }]
+
+  // 整个图标的绘制最好封装在一个接口，因为后面要实现鼠标移动到柱子区域显示详情的动画，动画需要
+  function drawChart() {
+    ctx.font = '12px Microsoft YaHei';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'blue';
+
+    // 坐标轴
+    ctx.moveTo(50, 50);
+
+    ctx.lineTo(50, 450);
+
+    ctx.lineTo(450, 450);
+
+    ctx.stroke()
+    for (let i = 0; i < data.length; i++) {
+      data[i].x = kLen * (i + 1) + 40;
+      data[i].y = 450 - data[i].value;
+      data[i].width = 20;
+      data[i].height = data[i].value;
+      ctx.fillRect(data[i].x, data[i].y, data[i].width, data[i].height)
+
+      ctx.fillText(data[i].value, data[i].x, data[i].y - 10);
+    }
+
+    ctx.stroke()
+
+    // 刻度以及文字绘制
+    ctx.beginPath();
+
+    // y轴
+    for (let i = 1; i <= kNum; i++) {
+      ctx.moveTo(50, 450 - kLen * i);
+      ctx.lineTo(55, 450 - kLen * i);
+
+      ctx.fillText(kLen * i, 30, 450 - kLen * i);
+    }
+
+    // x轴
+    for (let i = 1; i <= kNum; i++) {
+      ctx.moveTo(50 + kLen * i, 450);
+      ctx.lineTo(50 + kLen * i, 455)
+
+      ctx.fillText(data[i - 1].name, 50 + kLen * i, 470);
+    }
+
+    ctx.stroke()
+
+    // title标题
+    ctx.fillText('网站流量数据统计', 250, 30);
+  }
+
+  drawChart();
+
+
+  // 鼠标移到柱子区域时展示详情tooltips
+  const mouse = {};
+  const tipData = {};
+  canvas.addEventListener('mousemove', event => {
+    // 获取鼠标的坐标点
+    mouse.mouseX = event.offsetX;
+    mouse.mouseY = event.offsetY;
+
+    // 获取展示数据
+    const tipflag = getTip(mouse.mouseX, mouse.mouseY);
+
+    // 清空容器
+    ctx.clearRect(0, 0, 500, 500);
+
+    // 重新绘制
+    drawChart();
+
+    if(!tipflag) return;
+
+    // 绘制tip
+    drawTip();
+  })
+
+  function drawTip() {
+    ctx.fillStyle = 'skyblue';
+    ctx.strokeRect(tipData.x, tipData.y, 100, 50);
+    ctx.fillRect(tipData.x, tipData.y, 100, 50);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`${tipData.name}:${tipData.value}`, tipData.x+50, tipData.y+25);
+    ctx.fillStyle = none;
+  }
+
+  function getTip(mouseX, mouseY) {
+    let tipFlag = false;
+    for (let i = 0; i < data.length; i++) {
+      if (mouseX > data[i].x && mouseX < data[i].x + 20
+        &&
+        mouseY > data[i].y && mouseY < data[i].y + data[i].value) {
+        tipData.x = mouseX;
+        tipData.y = mouseY;
+        tipData.name = data[i].name;
+        tipData.value = data[i].value;
+        tipFlag = true;
+        break;
+      }
+    }
+    return tipFlag;
+  }
+
+</script>
+
+</html>

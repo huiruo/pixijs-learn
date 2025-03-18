@@ -1,3 +1,154 @@
+# 基础
+https://github.com/fefeding/pixigame
+
+pixi.js - v4.5.5 版本：
+
+- PIXI.Application 创建一个游戏时第一个要初始化的对象。
+- stage 舞台，我们可以看做是所有对象的根节点，类似于document。
+- PIXI.loader 资源加载和管理器。
+- PIXI.Texture 材质，通常是指我们加载的图片。
+- PIXI.Sprite 精灵，就是游戏中的一个对象，结合PIXI.Texture 材质使用。
+- PIXI.extras.AnimatedSprite 动画精灵，可以设置多个图片，按序播放。
+- PIXI.Container 精灵容器，我们可以把多个精灵结合在一起组成一个更复杂的对象。
+
+### 初始化PixiJS
+```js
+var opt = {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    antialias: true,    // default: false
+    transparent: false, // default: false
+    resolution: 1       // default: 1
+};
+//生成app对象，指定宽高，这里直接全屏
+var app = new PIXI.Application(opt);
+app.renderer.backgroundColor = 0xffffff;
+app.renderer.autoResize = true;
+//这里使用app生成的app.view(canvas)
+document.body.appendChild(app.view);
+//这里是APP的ticker，会不断调用此回调
+//我们在这里去调用游戏的状态更新函数
+app.ticker.add(function(delta) {
+    //理论上要用delta去做时间状态处理，我们这里比较简单就不去处理时间问题了
+    //每次执行都当做一个有效的更新
+    game.update(delta);
+});
+```
+
+### 资源加载
+加载资源使用PIXI.loader，支持单个图片，或雪碧图的配置json文件。
+
+```js
+PIXI.loader
+.add(name1, 'img/bg_1-min.jpg')
+.add(name2, 'img/love.json').load(function(){
+    //加载完
+});
+```
+
+雪碧图和其json配置文件可以用工具TexturePackerGUI来生成， 格式如下:
+```json
+{"frames": {
+
+"bomb.png":
+{
+	"frame": {"x":0,"y":240,"w":192,"h":192},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":192,"h":192},
+	"sourceSize": {"w":192,"h":192}
+},
+...//省略多个
+"x.png":
+{
+	"frame": {"x":576,"y":240,"w":192,"h":192},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":192,"h":192},
+	"sourceSize": {"w":192,"h":192}
+}},
+"animations": {
+	"m": ["m1.png","m2.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "love.png?201902132001",
+	"format": "RGBA8888",
+	"size": {"w":768,"h":432},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:5bb8625ec2f5c0ee2a84ed4f5a6ad212:f3955dc7846d47f763b8c969f5e7bed3:7f84f9b657b57037d77ff46252171049$"
+}
+}
+```
+
+### 精灵
+加载完资源后，我们就可以用PIXI.loader.resources读取资源，制作一个普通精灵。
+```js
+var textures = PIXI.loader.resources['qq'].textures;
+var sprite = new PIXI.Sprite(textures['qq_head.png']);
+```
+
+### 动画
+跟上面普通精灵类似，只是使用多个图片做为侦。然后用PIXI.extras.AnimatedSprite来播放。 例如下面我们取雪碧图中f开头的图片组成一个动画。 资源图:
+```js
+var textures = PIXI.loader.resources['bling'];
+var expTextures = [];//当前动画所有材质集合
+var keys = textures.data.animations['f'];
+//按索引排个序，以免侦次序乱了
+keys.sort(function(k1,k2){
+    return k1.replace(/[^\d]/g,'') - k2.replace(/[^\d]/g,'');
+});
+for(var i=0;i<keys.length;i++) {
+    var t = textures[keys[i]];
+    expTextures.push(t);
+}
+var side = new PIXI.extras.AnimatedSprite(expTextures);
+side.animationSpeed = 0.15;//指定其播放速度
+app.stage.addChild(side);
+//其它接口请查看官方文档
+```
+
+### 状态更新
+每个对象都有一个update函数，都在这里自已更新自已的位置和状态(update由app.ticker定时调用)。所有对外开放的状态设置都提供接口，比如die、move等。 如下：
+```js
+this.die = function() {
+    this.state = 'dead';
+    this.sprite.visible = false;
+    map.removeBob(this);
+}
+//发生碰撞，炸弹会导致气球破裂
+this.hitEnd = function() {
+    //气球破裂
+    heart.break(function(){
+        console.log('我跟气球撞了');
+    });
+}
+//更新炸弹状态
+this.update = function(delta) {
+    //计算当前在屏幕中的坐标
+    var p = map.toLocalPosition(this.position.x, this.position.y);
+    //运行中，障碍物到屏幕时才需要显示
+    if(game.state == 'play' && p.y >= -this.sprite.height) {
+        this.start();
+    }
+    if(!this.sprite.visible) return;
+    //移动精灵
+    this.sprite.x = p.x;
+    this.sprite.y = p.y;
+    //出了屏外，则不需要再显示
+    if(p.y > game.app.screen.height) {
+        this.die();
+        return;
+    }
+    //如果碰到当前精灵，则精灵死
+    if(heart.hitTest(this)) {
+        this.hitEnd();
+    }
+    this.position.y += this.vy; //保持自身的速度
+}
+```
+
 
 # 组件
 https://pixi.nodejs.cn/guides/basics/architecture-overview

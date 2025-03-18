@@ -46,6 +46,30 @@ src/views/pixi1/components-docs/index-container.tsx
 
 想象一下弹出窗口。它有一个由一个或多个 Sprite 组成的框架，然后有一个可滚动的内容区域，该区域隐藏了框架外的内容。容器加上遮罩使该可滚动区域易于实现。添加容器，将其mask属性设置为带有矩形的 Graphics 对象，并添加要显示的文本、图像等内容作为该遮罩容器的子项。任何超出矩形遮罩的内容都不会被绘制。移动容器的内容以根据需要滚动。
 
+参考：
+src/views/pixi1/components-docs/index-container2.tsx
 
+PixiJS 支持两种类型的蒙版：
 
+1. 使用Graphics对象创建任意形状的蒙版 - 功能强大，但不支持抗锯齿
 
+2. Sprite：使用Sprite中的 alpha 通道作为蒙版，提供抗锯齿边缘 - Canvas 渲染器不支持
+
+## 1.3.过滤
+容器对象的另一个常见用途是作为过滤内容的主机。过滤器是一种高级的、仅限 WebGL/WebGPU 的功能，允许 PixiJS 执行模糊和位移等逐像素效果。通过在容器上设置过滤器，容器所包含的屏幕区域将在容器的内容渲染后由过滤器处理。
+
+以下是 PixiJS 中默认可用的过滤器列表。不过，社区存储库中还有更多过滤器。
+
+1. AlphaFilter
+  - 类似于设置alpha属性，但展平容器而不是单独应用于子项。
+2. BlurFilter	
+  - 应用模糊效果
+
+3. ColorMatrixFilter
+  - 颜色矩阵是一种灵活的方式来应用更复杂的色调或颜色变换（例如棕褐色调）。
+
+4. DisplacementFilter
+  - 位移图创建视觉偏移像素，例如创建波浪水效果。
+
+5. NoiseFilter
+  - 创建随机噪声（例如，颗粒效果）。
